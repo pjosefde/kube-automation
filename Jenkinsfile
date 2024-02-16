@@ -1,12 +1,16 @@
+def dockerRepoUrl = "localhost:5000"
+def dockerImageName = "shubhambmatere/devops-integration"
+def dockerImageTag = "${dockerRepoUrl}/${dockerImageName}:${env.BUILD_NUMBER}"
+    
 pipeline {
     agent any
     tools{
-        maven 'maven'
+        maven 'maven-3.9.4'
     }
     stages{
         stage('Build Maven'){
             steps{
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/ShubhamBMatere/devops-automation.git']])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/pjosefde/kube-automation.git']])
                 sh 'mvn clean install'
             }
         }
@@ -19,19 +23,23 @@ pipeline {
         }
         stage('Push image to Hub'){
             steps{
-                script{
-                   withCredentials([string(credentialsId: 'dockerhubpasswrd', variable: 'dockerhubpasswrd')]) {
-                   sh 'docker login -u shubhambmatere -p ${dockerhubpasswrd}'
+                //script{
+                   //withCredentials([string(credentialsId: 'dockerhubpasswrd', variable: 'dockerhubpasswrd')]) {
+                   //sh 'docker login -u shubhambmatere -p ${dockerhubpasswrd}'
 
-}
-                   sh 'docker push shubhambmatere/devops-integration'
+            //}
+                   //sh 'docker push shubhambmatere/devops-integration'
+                   echo "Docker Image Tag Name: ${dockerImageTag}"
+
+                   // sh "docker login -u admin -p admin123 ${dockerRepoUrl}"
+                   sh "docker tag ${dockerImageName} ${dockerImageTag}"
+                   sh "docker push ${dockerImageTag}"
                 }
-            }
         }
         stage('Deploy to k8s'){
-            steps{
-                script{
-                    kubernetesDeploy (configs: 'deploymentservice.yaml',kubeconfigId: 'k8sConfig')
+            steps {
+                withKubeConfig([credentialsId: 'kube-master', serverUrl: 'https://192.168.1.32:6443']) {
+                    sh 'kubectl apply -f deploymentservice.yaml'
                 }
             }
         }
