@@ -16,7 +16,8 @@ spec:
         - name: spring-boot-k8s
           image: pjosef-repo.example.com:5000/shubhambmatere/devops-integration:latest # Image that will be used to containers in the cluster
           # image: shubhambmatere/devops-integration # Image that will be used to containers in the cluster
-          imagePullPolicy: IfNotPresent
+          # imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080 # The port that the container is running on in the cluster
 
