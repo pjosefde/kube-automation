@@ -1,7 +1,8 @@
 def dockerRepoUrl = "localhost:5000"
 def dockerImageName = "shubhambmatere/devops-integration"
-def dockerImageTag = "${dockerRepoUrl}/${dockerImageName}:${env.BUILD_NUMBER}"
-    
+//def dockerImageTag = "${dockerRepoUrl}/${dockerImageName}:${env.BUILD_NUMBER}"
+def dockerImageTag = "${dockerRepoUrl}/${dockerImageName}:latest"
+  
 pipeline {
     agent any
     tools{
@@ -38,7 +39,8 @@ pipeline {
         }
         stage('Deploy to k8s'){
             steps {
-                withKubeConfig([credentialsId: 'kube-master', serverUrl: 'https://192.168.1.32:6443']) {
+                withKubeConfig([credentialsId: 'kube-master', serverUrl: 'https://192.168.1.34:6443']) {
+                    sh 'kubectl delete -f deploymentservice.yaml'
                     sh 'kubectl apply -f deploymentservice.yaml'
                 }
             }
